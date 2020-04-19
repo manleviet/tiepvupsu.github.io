@@ -35,7 +35,7 @@ summary: Trong thuật toán K-means clustering, chúng ta không biết nhãn (
         - [Cố định \\\(\mathbf{M} \\\), tìm \\\(\mathbf{Y}\\\)](#co-dinh-\\\mathbfm-\\-tim-\\\mathbfy\\)
         - [Cố định \\\(\mathbf{Y} \\\), tìm \\\(\mathbf{M}\\\)](#co-dinh-\\\mathbfy-\\-tim-\\\mathbfm\\)
     - [Tóm tắt thuật toán](#tom-tat-thuat-toan)
-- [Ví dụ trên Python](#vi-du-tren-python)
+- [3. Ví dụ trên Python](#-vi-du-tren-python)
     - [Giới thiệu bài toán](#gioi-thieu-bai-toan)
     - [Hiển thị dữ liệu trên đồ thị](#hien-thi-du-lieu-tren-do-thi)
     - [Các hàm số cần thiết cho K-means clustering](#cac-ham-so-can-thiet-cho-k-means-clustering)
@@ -51,7 +51,6 @@ summary: Trong thuật toán K-means clustering, chúng ta không biết nhãn (
 
 <!-- /MarkdownTOC -->
 
-<!-- ========================== New Heading ==================== -->
 <a name="-gioi-thieu"></a>
 
 ## 1. Giới thiệu
@@ -64,7 +63,7 @@ Trong thuật toán K-means clustering, chúng ta không biết nhãn (label) c�
 
 **Ví dụ:** Một công ty muốn tạo ra những chính sách ưu đãi cho những nhóm khách hàng khác nhau dựa trên sự tương tác giữa mỗi khách hàng với công ty đó (số năm là khách hàng; số tiền khách hàng đã chi trả cho công ty; độ tuổi; giới tính; thành phố; nghề nghiệp; ...). Giả sử công ty đó có rất nhiều dữ liệu của rất nhiều khách hàng nhưng chưa có cách nào chia toàn bộ khách hàng đó thành một số nhóm/cụm khác nhau. Nếu một người biết Machine Learning được đặt câu hỏi này, phương pháp đầu tiên anh (chị) ta nghĩ đến sẽ là K-means Clustering. Vì nó là một trong những thuật toán đầu tiên mà anh ấy tìm được trong các cuốn sách, khóa học về Machine Learning. Và tôi cũng chắc rằng anh ấy đã đọc blog <a href = "https://tiepvupsu.github.io">Machine Learning cơ bản</a>. Sau khi đã phân ra được từng nhóm, nhân viên công ty đó có thể lựa chọn ra một vài khách hàng trong mỗi nhóm để quyết định xem mỗi nhóm tương ứng với nhóm khách hàng nào. Phần việc cuối cùng này cần sự can thiệp của con người, nhưng lượng công việc đã được rút gọn đi rất nhiều. 
 
-Ý tưởng đơn giản nhất về cluster (cụm) là tập hợp các điểm _ở gần nhau trong một không gian nào đó_ (không gian này có thể có rất nhiều chiều trong trường hợp thông tin về một điểm dữ liệu là rất lớn). Hình bên dưới là một ví dụ về 3 cụm dữ liệu (từ giờ rôi sẽ viết gọn là _cluster_). 
+Ý tưởng đơn giản nhất về cluster (cụm) là tập hợp các điểm _ở gần nhau trong một không gian nào đó_ (không gian này có thể có rất nhiều chiều trong trường hợp thông tin về một điểm dữ liệu là rất lớn). Hình bên dưới là một ví dụ về 3 cụm dữ liệu (từ giờ tôi sẽ viết gọn là _cluster_). 
 
 
 <div class="imgcap">
@@ -94,7 +93,6 @@ Quay lại với bài toán phân nhóm và cụ thể là thuật toán K-means
 
 Mục đích cuối cùng của thuật toán phân nhóm này là: từ dữ liệu đầu vào và số lượng nhóm chúng ta muốn tìm, hãy chỉ ra center của mỗi nhóm và phân các điểm dữ liệu vào các nhóm tương ứng. Giả sử thêm rằng mỗi điểm dữ liệu chỉ thuộc vào đúng một nhóm. 
 
-<!-- ========================== New Heading ==================== -->
 <a name="mot-so-ky-hieu-toan-hoc"></a>
 
 ### Một số ký hiệu toán học
@@ -103,7 +101,7 @@ Giả sử có \\(N\\) điểm dữ liệu là \\( \mathbf{X} = [\mathbf{x}_1, \
 **Lưu ý về ký hiệu toán học:** *trong các bài viết của tôi, các số vô hướng được biểu diễn bởi các chữ cái viết ở dạng không in đậm, có thể viết hoa, ví dụ \\(x_1, N, y, k\\). Các vector được biểu diễn bằng các chữ cái thường in đậm, ví dụ \\(\mathbf{m}, \mathbf{x}_1 \\). Các ma trận được biểu diễn bởi các chữ viết hoa in đậm, ví dụ \\(\mathbf{X, M, Y} \\). Lưu ý này đã được nêu ở bài <a href = "/2016/12/28/linearregression/">Linear Regression</a>. Tôi xin được không nhắc lại trong các bài tiếp theo.*
 
 <a name="one-hot"></a>
-Với mỗi điểm dữ liệu \\( \mathbf{x}\_i \\) đặt \\(\mathbf{y}\_i = [y\_{i1}, y\_{i1}, \dots, y\_{iK}]\\) là label vector của nó, trong đó nếu \\( \mathbf{x}\_i \\) được phân vào cluster \\(k\\) thì  \\(y\_{ik} = 1\\) và \\(y\_{ij} = 0, \forall j \neq k \\). Điều này có nghĩa là có đúng một phần tử của vector \\(\mathbf{y}\_i\\) là bằng 1 (tương ứng với cluster của \\(\mathbf{x}\_i \\)), các phần tử còn lại bằng 0. Ví dụ: nếu một điểm dữ liệu có label vector là \\([1,0,0,\dots,0]\\) thì nó thuộc vào cluster 1, là \\([0,1,0,\dots,0]\\) thì nó thuộc vào cluster 2, \\(\dots\\). Cách mã hóa label của dữ liệu như thế này được goi là biểu diễn [_one-hot_](https://en.wikipedia.org/wiki/One-hot). Chúng ta sẽ thấy cách biểu diễn one-hot này rất phổ biến trong Machine Learning ở các bài tiếp theo. 
+Với mỗi điểm dữ liệu \\( \mathbf{x}\_i \\) đặt \\(\mathbf{y}\_i = [y\_{i1}, y\_{i2}, \dots, y\_{iK}]\\) là label vector của nó, trong đó nếu \\( \mathbf{x}\_i \\) được phân vào cluster \\(k\\) thì  \\(y\_{ik} = 1\\) và \\(y\_{ij} = 0, \forall j \neq k \\). Điều này có nghĩa là có đúng một phần tử của vector \\(\mathbf{y}\_i\\) là bằng 1 (tương ứng với cluster của \\(\mathbf{x}\_i \\)), các phần tử còn lại bằng 0. Ví dụ: nếu một điểm dữ liệu có label vector là \\([1,0,0,\dots,0]\\) thì nó thuộc vào cluster 1, là \\([0,1,0,\dots,0]\\) thì nó thuộc vào cluster 2, \\(\dots\\). Cách mã hóa label của dữ liệu như thế này được goi là biểu diễn [_one-hot_](https://en.wikipedia.org/wiki/One-hot). Chúng ta sẽ thấy cách biểu diễn one-hot này rất phổ biến trong Machine Learning ở các bài tiếp theo. 
 
 Ràng buộc của \\(\mathbf{y}\_i \\) có thể viết dưới dạng toán học như sau:
 \\[
@@ -241,9 +239,9 @@ Chúng ta có thể đảm bảo rằng thuật toán sẽ dừng lại sau mộ
 Chúng ta sẽ có một vài [thảo luận](#-thao-luan) về thuật toán này, về những hạn chế và một số phương pháp khắc phục. Nhưng trước hết, hãy xem nó thể hiện như thế nào trong một ví dụ cụ thể dưới đây.
 
 <!-- ========================== New Heading ==================== -->
-<a name="vi-du-tren-python"></a>
+<a name="-vi-du-tren-python"></a>
 
-## Ví dụ trên Python
+## 3. Ví dụ trên Python
 
 <!-- ========================== New Heading ==================== -->
 <a name="gioi-thieu-bai-toan"></a>
@@ -256,7 +254,8 @@ Trước tiên, chúng ta cần khai báo các thư viện cần dùng. Chúng t
 
 
 ```python
-import numpy as np 
+from __future__ import print_function 
+import numpy as np
 import matplotlib.pyplot as plt
 from scipy.spatial.distance import cdist
 np.random.seed(11)
@@ -373,8 +372,8 @@ def kmeans(X, K):
 
 ```python
 (centers, labels, it) = kmeans(X, K)
-print 'Centers found by our algorithm:'
-print centers[-1]
+print('Centers found by our algorithm:')
+print(centers[-1])
 
 kmeans_display(X, labels[-1])
 ```
@@ -414,8 +413,8 @@ Các bạn có thể xem thêm các trang web minh họa thuật toán K-means c
 ```python
 from sklearn.cluster import KMeans
 kmeans = KMeans(n_clusters=3, random_state=0).fit(X)
-print 'Centers found by scikit-learn:'
-print kmeans.cluster_centers_
+print('Centers found by scikit-learn:')
+print(kmeans.cluster_centers_)
 pred_label = kmeans.predict(X)
 kmeans_display(X, pred_label)
 ```
